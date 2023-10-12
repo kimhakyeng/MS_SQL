@@ -1,0 +1,135 @@
+USE [PortfolioDB]
+GO
+/****** Object:  StoredProcedure [dbo].[MYSELF_C]    Script Date: 2023-10-12 오후 3:32:49 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+/*
+[T01]PROC    명: MYSELF_C
+[T02]PROC  기능: 
+[T03]입 력 변수:  
+[T04]작성  일자: 2017-
+[T05]작  성  자: 김하경
+[T06]최종수정일: 
+[T07]최종수정자:  
+[T08]수정  이력: 
+[T09]실행  예제: 
+[T10]비      고:
+*/
+
+ALTER PROCEDURE [dbo].[MYSELF_C]
+	@IN_FUNC					NVARCHAR(10),		--구분 (CU:저장/ D:삭제)
+	
+
+	@IN_USER_ID					NVARCHAR(20),
+	@IN_NAME					NVARCHAR(20),
+
+	@IN_TITLE					NVARCHAR(20),
+	@IN_AGE						NVARCHAR(20),
+	@IN_MAIL					NVARCHAR(50),
+	@IN_PHONE_NUMBER			NVARCHAR(20),
+	@IN_ADRESS					NVARCHAR(50),
+	@IN_SELF_IMAGE				IMAGE,
+	@IN_MBTI					NVARCHAR(20),
+	@IN_HOBBY					IMAGE,
+	@IN_ABILITY					NVARCHAR(100),
+	@IN_Educational_History		NVARCHAR(50),
+	@IN_Career					NVARCHAR(100),
+	@IN_Salary					NVARCHAR(100),
+	@IN_WorkState				NVARCHAR(100),
+	@IN_Portfolio				NVARCHAR(100),
+	
+	
+	
+	@RET_CODE		INT OUTPUT,
+	@RET_MSG		NVARCHAR(250) OUTPUT
+as
+/*
+BEGIN TRAN
+DECLARE @RET_CODE NVARCHAR (10), @RET_MSG NVARCHAR (250)
+EXEC PROCEDURE @IN_GUBUN = N'R',
+	@IN_FUNC = N'HM',
+	@IN_USER_ID = N'sysadmin',
+
+	@RET_CODE = @RET_CODE OUTPUT,@RET_MSG = @RET_MSG OUTPUT
+SELECT @RET_CODE AS RET_CODE, 
+	@RET_MSG AS RET_MSG
+--COMMIT TRAN
+ROLLBACK TRAN
+*/
+SET NOCOUNT ON
+
+BEGIN TRY
+	
+	IF @IN_FUNC = 'C'
+	BEGIN
+		IF EXISTS (SELECT 1 FROM MySelf_TABLE
+					WHERE ID = @IN_USER_ID)
+		BEGIN
+			UPDATE MySelf_TABLE
+			SET TITLE = @IN_TITLE
+				,NAME = @IN_NAME
+				,AGE = @IN_AGE
+				,MAIL = @IN_MAIL
+				,PHONE_NUMBER = @IN_PHONE_NUMBER
+				,ADRESS = @IN_ADRESS
+				,SELF_IMAGE = @IN_SELF_IMAGE
+				,MBTI = @IN_MBTI
+				,HOBBY = @IN_HOBBY
+				,ABILITY = @IN_ABILITY
+				,Educational_History = @IN_Educational_History
+				,Career  =@IN_Career
+				,Salary = @IN_Salary
+				,WorkState = @IN_WorkState
+				,Portfolio = @IN_Portfolio
+			WHERE ID = @IN_USER_ID		
+		END
+		ELSE
+		BEGIN
+			INSERT INTO MySelf_TABLE(ID , TITLE, NAME, AGE, MAIL, PHONE_NUMBER, ADRESS, SELF_IMAGE, 
+			MBTI, HOBBY, ABILITY, Educational_History, Career, Salary, WorkState , Portfolio)			
+			SELECT @IN_USER_ID				
+				,@IN_TITLE
+				,@IN_NAME
+				,@IN_AGE
+				,@IN_MAIL
+				,@IN_PHONE_NUMBER
+				,@IN_ADRESS
+				,CASE WHEN CONVERT(VARBINARY, ISNULL(@IN_SELF_IMAGE,'')) = '' THEN NULL ELSE @IN_SELF_IMAGE END
+				,@IN_MBTI
+				,CASE WHEN CONVERT(VARBINARY, ISNULL(@IN_HOBBY,'')) = '' THEN NULL ELSE @IN_HOBBY END
+				,@IN_ABILITY
+				,@IN_Educational_History
+				,@IN_Career
+				,@IN_Salary
+				,@IN_WorkState
+				,@IN_Portfolio
+			
+		END
+		SET @RET_MSG = '저장 성공'
+		SET @RET_CODE = 0
+	END			
+	ELSE
+	BEGIN
+		SET @RET_MSG = '작업 구분이 없습니다.'
+		SET @RET_CODE = -1
+		RAISERROR(@RET_MSG, 11, 1)
+	END
+			
+END TRY
+
+BEGIN CATCH
+   IF @RET_CODE IS NULL BEGIN SET @RET_CODE = ERROR_NUMBER() END
+   IF @RET_MSG IS NULL BEGIN SET @RET_MSG =  ERROR_MESSAGE() END
+
+   IF @@TRANCOUNT> 0
+      ROLLBACK TRAN
+END CATCH
+
+
+
+
+
+
